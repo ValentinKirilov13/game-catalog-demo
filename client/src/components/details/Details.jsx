@@ -1,16 +1,47 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 export default function Details() {
     const { gameId } = useParams();
     const [game, setGame] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
-        fetch(`http://localhost:3030/jsonstore/games/${gameId}`)
+        const abortController = new AbortController();
+
+        fetch(`http://localhost:3030/jsonstore/games/${gameId}`, {
+            signal: abortController.signal,
+        })
             .then((response) => response.json())
             .then((result) => setGame(result))
-            .catch((err) => alert(err));
+            .catch((err) => {
+                if (err.name === "AbortError") return;
+
+                alert(err.message);
+            });
+
+        return () => {
+            abortController.abort();
+        };
     }, [gameId]);
+
+    const deleteGameHandler = async () => {
+        const isConfirmed = confirm(
+            `Are you sure you want to delete game: ${game.title}`
+        );
+
+        if (!isConfirmed) return;
+
+        try {
+            await fetch(`http://localhost:3030/jsonstore/games/${gameId}`, {
+                method: "DELETE",
+            });
+
+            navigate("/games");
+        } catch (error) {
+            alert(error);
+        }
+    };
 
     return (
         <section id="game-details">
@@ -48,9 +79,17 @@ export default function Details() {
                     <a href="#" className="button">
                         Edit
                     </a>
-                    <a href="#" className="button">
+                    {/* <a href="#" className="button">
                         Delete
-                    </a>
+                    </a> */}
+
+                    <button
+                        type="button"
+                        className="button"
+                        onClick={deleteGameHandler}
+                    >
+                        Delete
+                    </button>
                 </div>
 
                 <div className="details-comments">
