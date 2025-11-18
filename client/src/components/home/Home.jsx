@@ -5,7 +5,11 @@ export default function Home() {
     const [games, setGames] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:3030/jsonstore/games")
+        const abortController = new AbortController();
+
+        fetch("http://localhost:3030/jsonstore/games", {
+            signal: abortController.signal,
+        })
             .then((response) => response.json())
             .then((result) => {
                 const latestGames = Object.values(result)
@@ -14,7 +18,15 @@ export default function Home() {
 
                 setGames(latestGames);
             })
-            .catch((err) => alert(err));
+            .catch((err) => {
+                if (err.name === "AbortError") return;
+
+                alert(err.message);
+            });
+
+        return () => {
+            abortController.abort();
+        };
     }, []);
 
     return (

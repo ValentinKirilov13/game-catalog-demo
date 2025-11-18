@@ -12,11 +12,10 @@ export default function App() {
             <main>
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/catalog" element={<Catalog />} />
-                    <Route
-                        path="/games/:gameId/details"
-                        element={<Details />}
-                    />
+                    <Route path="/games">
+                        <Route index element={<Catalog />} />
+                        <Route path=":gameId/details" element={<Details />} />
+                    </Route>
                 </Routes>
             </main>
             <Footer />
